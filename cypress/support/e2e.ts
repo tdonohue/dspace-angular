@@ -54,6 +54,7 @@ before(() => {
 });
 
 // Runs once before the first test in each "block"
+// (In Cypress, a test "block" starts with "describe()")
 beforeEach(() => {
     // Pre-agree to all Klaro cookies by setting the klaro-anonymous cookie
     // This just ensures it doesn't get in the way of matching other objects in the page.
@@ -61,6 +62,11 @@ beforeEach(() => {
 
     // Remove any CSRF cookies saved from prior tests
     cy.clearCookie(DSPACE_XSRF_COOKIE);
+
+    // TODO: These methods *WORK*.  However, they end up crashing/overwhelming the UI in tests
+    // (request timed out).  NEED TO DEBUG WHY. Maybe it's several calls to login or several CSRF tokens?
+    //cy.cleanupTestContent();
+    //cy.createCommunity();
 });
 
 // NOTE: FALLBACK_TEST_REST_BASE_URL is only used if Cypress cannot read the REST API BaseURL

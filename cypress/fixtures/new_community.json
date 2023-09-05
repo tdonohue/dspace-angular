@@ -1,0 +1,10 @@
+{
+    "type":{"value":"community"},
+    "metadata":{
+        "dc.title":[{"value":"e2e testing Community"}],
+        "dc.description":[{"value":"This is the introductory text for a test community"}],
+        "dc.description.abstract":[{"value":"All communities need a short description"}],
+        "dc.rights":[{"value":"This community includes a custom license that you must agree to."}],
+        "dc.description.tableofcontents":[{"value":"Great news! This Community is used for e2e testing and can be deleted safely."}]  
+    }
+}

@@ -6,6 +6,8 @@ const fs = require('fs');
 let REST_BASE_URL: string;
 let REST_DOMAIN: string;
 
+let E2E_TEST_COMMUNITIES = [];
+
 // Plugins enable you to tap into, modify, or extend the internal behavior of Cypress
 // For more info, visit https://on.cypress.io/plugins-api
 module.exports = (on, config) => {
@@ -54,6 +56,16 @@ module.exports = (on, config) => {
         // Retrieve currently saved value of REST Domain
         getRestBaseDomain() {
             return REST_DOMAIN ;
+        },
+
+        saveCommunityData(data: string): number {
+            return E2E_TEST_COMMUNITIES.push(data);
+        },
+        getCommunityData(): string[] {
+            return E2E_TEST_COMMUNITIES;
+        },
+        resetCommunityData() {
+            return (E2E_TEST_COMMUNITIES = []);
         }
     });
 };
