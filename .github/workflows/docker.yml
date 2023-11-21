@@ -5,11 +5,11 @@ name: Docker images
 # Also run for PRs to ensure PR doesn't break Docker build process
 on:
   push:
-    branches:
-      - main
-      - 'dspace-**'
-    tags:
-      - 'dspace-**'
+  #  branches:
+  #   - main
+  #    - 'dspace-**'
+  #  tags:
+  #    - 'dspace-**'
   pull_request:
 
 permissions:
