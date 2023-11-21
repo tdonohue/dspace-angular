@@ -38,7 +38,7 @@ jobs:
   #############################################################
   dspace-angular:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace-angular'
-    if: github.repository == 'dspace/dspace-angular'
+    # if: github.repository == 'dspace/dspace-angular'
 
     strategy:
         matrix:
@@ -169,7 +169,7 @@ jobs:
   #############################################################
   dspace-angular-dist:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace-angular'
-    if: github.repository == 'dspace/dspace-angular'
+    # if: github.repository == 'dspace/dspace-angular'
 
     strategy:
         matrix:
@@ -180,10 +180,10 @@ jobs:
                 - ${{ github.event_name == 'pull_request' }}
             # If this is a PR, we ONLY build for AMD64. For PRs we only do a sanity check test to ensure Docker builds work.
             # The below exclude therefore ensures we do NOT build ARM64 for PRs.
-            exclude:
-                - isPr: true
-                  os: ubuntu-latest
-                  arch: linux/arm64
+            #exclude:
+            #    - isPr: true
+            #      os: ubuntu-latest
+            #      arch: linux/arm64
 
     runs-on: ${{ matrix.os }}
     steps:
