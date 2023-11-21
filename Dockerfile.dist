@@ -13,7 +13,9 @@ RUN apk add --update python3 make g++ && rm -rf /var/cache/apk/*
 WORKDIR /app
 COPY package.json yarn.lock ./
 ARG TARGETARCH
+ARG TARGETOS
 ENV npm_config_arch=$TARGETARCH
+ENV npm_config_target_platform=$TARGETOS
 RUN yarn install --network-timeout 300000
 
 ADD . /app/
