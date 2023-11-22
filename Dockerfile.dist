@@ -16,6 +16,7 @@ ARG TARGETARCH
 ARG TARGETOS
 ENV npm_config_arch=$TARGETARCH
 ENV npm_config_target_platform=$TARGETOS
+RUN echo "Building for ${TARGETARCH} ${TARGETOS}"
 RUN yarn install --network-timeout 300000
 
 ADD . /app/
