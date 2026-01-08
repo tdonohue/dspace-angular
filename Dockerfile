@@ -1,17 +1,22 @@
 # This image will be published as dspace/dspace-angular
 # See https://github.com/DSpace/dspace-angular/tree/main/docker for usage details
 
-FROM docker.io/node:20-alpine
+FROM docker.io/node:22-alpine
 
 # Ensure Python and other build tools are available
 # These are needed to install some node modules, especially on linux/arm64
 RUN apk add --update python3 make g++ && rm -rf /var/cache/apk/*
 
+USER node
 WORKDIR /app
-ADD . /app/
-EXPOSE 4000
 
-RUN npm install
+# Copy over package files first, so this layer will only be rebuilt if those files change.
+COPY --chown=node:node package.json package-lock.json ./
+# NOTE: "ci" = clean install from package files
+RUN npm ci
+
+# Add the rest of the source code
+COPY --chown=node:node . /app/
 
 # When running in dev mode, 4GB of memory is required to build & launch the app.
 # This default setting can be overridden as needed in your shell, via an env file or in docker-compose.
@@ -23,4 +28,10 @@ ENV NODE_OPTIONS="--max_old_space_size=4096"
 # NOTE: At this time it is only possible to run Docker container in Production mode
 # if you have a public URL. See https://github.com/DSpace/dspace-angular/issues/1485
 ENV NODE_ENV=development
-CMD npm run serve -- --host 0.0.0.0
+
+EXPOSE 4000
+
+# On startup, run this command to start application in dev mode
+ENTRYPOINT [ "npm", "run", "serve" ]
+# By default set host to 0.0.0.0 for UI
+CMD ["--", "--host 0.0.0.0"]
