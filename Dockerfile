@@ -33,5 +33,5 @@ EXPOSE 4000
 
 # On startup, run this command to start application in dev mode
 ENTRYPOINT [ "npm", "run", "serve" ]
-# By default set host to 0.0.0.0 for UI
-CMD ["--", "--host 0.0.0.0"]
+# By default set host to 0.0.0.0 for UI. Poll for changes every 5 seconds (if any detected, app will rebuild/restart)
+CMD ["--", "--host 0.0.0.0", "--poll 5000"]
