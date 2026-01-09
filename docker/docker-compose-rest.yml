@@ -102,8 +102,6 @@ services:
     ports:
     - published: 8983
       target: 8983
-    stdin_open: true
-    tty: true
     working_dir: /var/solr/data
     volumes:
     # Keep Solr data directory between reboots
