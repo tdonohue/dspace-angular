@@ -19,11 +19,11 @@ import {
 } from 'rxjs';
 
 import { DSONameService } from '../breadcrumbs/dso-name.service';
+import { ConfigurationDataService } from '../data/configuration-data.service';
 import { AuthorizationDataService } from '../data/feature-authorization/authorization-data.service';
 import { PaginatedList } from '../data/paginated-list.model';
 import { RemoteData } from '../data/remote-data';
 import { RootDataService } from '../data/root-data.service';
-import { HardRedirectService } from '../services/hard-redirect.service';
 import { Bitstream } from '../shared/bitstream.model';
 import { Bundle } from '../shared/bundle.model';
 import { Item } from '../shared/item.model';
@@ -46,6 +46,7 @@ import {
   AddMetaTagAction,
   ClearMetaTagAction,
 } from './meta-tag.actions';
+import { environment } from '../../../environments/environment';
 
 describe('HeadTagService', () => {
   let headTagService: HeadTagService;
@@ -59,13 +60,14 @@ describe('HeadTagService', () => {
   let bundleDataService;
   let rootService: RootDataService;
   let translateService: TranslateService;
-  let hardRedirectService: HardRedirectService;
   let authorizationService: AuthorizationDataService;
+  let configurationService: ConfigurationDataService;
 
   let router: Router;
   let store;
 
   let appConfig: AppConfig;
+  let originalBaseUrl;
 
   const initialState = { 'core': { metaTag: { tagsInUse: ['title', 'description'] } } };
 
@@ -95,9 +97,6 @@ describe('HeadTagService', () => {
         root: {},
       },
     } as any as Router;
-    hardRedirectService = jasmine.createSpyObj( {
-      getCurrentOrigin: 'https://request.org',
-    });
     authorizationService = jasmine.createSpyObj('authorizationService', {
       isAuthorized: of(true),
     });
@@ -122,10 +121,20 @@ describe('HeadTagService', () => {
       bundleDataService,
       rootService,
       store,
-      hardRedirectService,
       appConfig,
       authorizationService,
+      configurationService,
     );
+
+    // Store original environment variable to restore after tests
+    originalBaseUrl = environment.ui.baseUrl;
+    // The baseURL is needed to test the correct generation of the citation_pdf_url meta tag.
+    environment.ui.baseUrl = 'https://request.org';
+  });
+
+  afterEach(() => {
+    // Restore original environment variable after tests
+    environment.ui.baseUrl = originalBaseUrl;
   });
 
   describe(`robots tag`, () => {

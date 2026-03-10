@@ -11,11 +11,11 @@ import {
 import { RouterTestingModule } from '@angular/router/testing';
 import { AuthService } from '@dspace/core/auth/auth.service';
 import { DSONameService } from '@dspace/core/breadcrumbs/dso-name.service';
+import { ConfigurationDataService } from '@dspace/core/data/configuration-data.service';
 import { ItemDataService } from '@dspace/core/data/item-data.service';
 import { ItemRequestDataService } from '@dspace/core/data/item-request-data.service';
 import { EPerson } from '@dspace/core/eperson/models/eperson.model';
 import { NotificationsService } from '@dspace/core/notification-system/notifications.service';
-import { HardRedirectService } from '@dspace/core/services/hard-redirect.service';
 import { Item } from '@dspace/core/shared/item.model';
 import { ItemRequest } from '@dspace/core/shared/item-request.model';
 import { RequestCopyEmail } from '@dspace/core/shared/request-copy-email.model';
@@ -47,7 +47,7 @@ describe('GrantRequestCopyComponent', () => {
   let itemDataService: ItemDataService;
   let itemRequestService: ItemRequestDataService;
   let notificationsService: NotificationsService;
-  let hardRedirectService: HardRedirectService;
+  let configurationDataService: ConfigurationDataService;
 
   let itemRequest: ItemRequest;
   let user: EPerson;
@@ -128,7 +128,7 @@ describe('GrantRequestCopyComponent', () => {
         { provide: DSONameService, useValue: new DSONameServiceMock() },
         { provide: ItemRequestDataService, useValue: itemRequestService },
         { provide: NotificationsService, useValue: notificationsService },
-        { provide: HardRedirectService, useValue: hardRedirectService },
+        { provide: ConfigurationDataService, useValue: configurationDataService },
         { provide: ThemeService, useValue: getMockThemeService() },
       ],
       schemas: [NO_ERRORS_SCHEMA],

@@ -9,11 +9,11 @@ import {
   Router,
 } from '@angular/router';
 import { AuthService } from '@dspace/core/auth/auth.service';
+import { ConfigurationDataService } from '@dspace/core/data/configuration-data.service';
 import { ItemRequestDataService } from '@dspace/core/data/item-request-data.service';
 import { RemoteData } from '@dspace/core/data/remote-data';
 import { NotificationsService } from '@dspace/core/notification-system/notifications.service';
 import { getItemModuleRoute } from '@dspace/core/router/core-routing-paths';
-import { HardRedirectService } from '@dspace/core/services/hard-redirect.service';
 import { redirectOn4xx } from '@dspace/core/shared/authorized.operators';
 import { ItemRequest } from '@dspace/core/shared/item-request.model';
 import {
@@ -23,11 +23,12 @@ import {
 import { RequestCopyEmail } from '@dspace/core/shared/request-copy-email.model';
 import { URLCombiner } from '@dspace/core/url-combiner/url-combiner';
 import { hasValue } from '@dspace/shared/utils/empty.util';
+import { getBaseUrl } from '@dspace/shared/utils/url.util';
 import {
   TranslatePipe,
   TranslateService,
 } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import {
   map,
   switchMap,
@@ -110,7 +111,7 @@ export class GrantRequestCopyComponent implements OnInit {
     private translateService: TranslateService,
     private itemRequestService: ItemRequestDataService,
     private notificationsService: NotificationsService,
-    private hardRedirectService: HardRedirectService,
+    private configurationDataService: ConfigurationDataService,
   ) {
 
   }
@@ -123,7 +124,7 @@ export class GrantRequestCopyComponent implements OnInit {
     this.itemRequestRD$ = this.route.data.pipe(
       map((data) => data.request as RemoteData<ItemRequest>),
       getFirstCompletedRemoteData(),
-      tap((rd) => {
+      switchMap((rd) => {
         // If an access token is present then the backend has checked configuration and file sizes
         // and appropriately created a token to use with a secure link instead of attaching file directly
         if (rd.hasSucceeded && hasValue(rd.payload.accessToken)) {
@@ -134,9 +135,14 @@ export class GrantRequestCopyComponent implements OnInit {
               accessToken: rd.payload.accessToken,
             },
           };
-          this.previewLink = this.hardRedirectService.getCurrentOrigin()
-            + this.previewLinkOptions.routerLink + '?accessToken=' + rd.payload.accessToken;
+          return getBaseUrl(this.configurationDataService).pipe(
+            tap((baseUrl) => {
+              this.previewLink = baseUrl + this.previewLinkOptions.routerLink + '?accessToken=' + rd.payload.accessToken;
+            }),
+            map(() => rd),
+          );
         }
+        return of(rd);
       }),
       redirectOn4xx(this.router, this.authService),
     );

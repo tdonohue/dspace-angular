@@ -21,6 +21,7 @@ import {
   hasValue,
   isNotEmpty,
 } from '@dspace/shared/utils/empty.util';
+import { getBaseUrl } from '@dspace/shared/utils/url.util';
 import {
   createSelector,
   select,
@@ -47,13 +48,13 @@ import { DSONameService } from '../breadcrumbs/dso-name.service';
 import { coreSelector } from '../core.selectors';
 import { CoreState } from '../core-state.model';
 import { BundleDataService } from '../data/bundle-data.service';
+import { ConfigurationDataService } from '../data/configuration-data.service';
 import { AuthorizationDataService } from '../data/feature-authorization/authorization-data.service';
 import { FindListOptions } from '../data/find-list-options.model';
 import { PaginatedList } from '../data/paginated-list.model';
 import { RemoteData } from '../data/remote-data';
 import { RootDataService } from '../data/root-data.service';
 import { getBitstreamDownloadRoute } from '../router/utils/dso-route.utils';
-import { HardRedirectService } from '../services/hard-redirect.service';
 import { Bitstream } from '../shared/bitstream.model';
 import { getDownloadableBitstream } from '../shared/bitstream.operators';
 import { BitstreamFormat } from '../shared/bitstream-format.model';
@@ -120,9 +121,9 @@ export class HeadTagService {
     protected bundleDataService: BundleDataService,
     protected rootService: RootDataService,
     protected store: Store<CoreState>,
-    protected hardRedirectService: HardRedirectService,
     @Inject(APP_CONFIG) protected appConfig: AppConfig,
     protected authorizationService: AuthorizationDataService,
+    protected configurationService: ConfigurationDataService,
   ) {
   }
 
@@ -324,7 +325,9 @@ export class HeadTagService {
     if (this.currentObject.value instanceof Item) {
       let url = this.getMetaTagValue('dc.identifier.uri');
       if (hasNoValue(url)) {
-        url = new URLCombiner(this.hardRedirectService.getCurrentOrigin(), this.router.url).toString();
+        getBaseUrl(this.configurationService).pipe(take(1)).subscribe((baseUrl: string) => {
+          url = new URLCombiner(baseUrl, this.router.url).toString();
+        });
       }
       this.addMetaTag('citation_abstract_html_url', url);
     }
@@ -402,13 +405,16 @@ export class HeadTagService {
             );
           }
         }),
+        // Combine with the base URL to create the full citation_pdf_url
+        switchMap((link: string) =>
+          getBaseUrl(this.configurationService).pipe(
+            map((baseUrl: string) => new URLCombiner(baseUrl, link).toString()),
+          ),
+        ),
         take(1),
-      ).subscribe((link: string) => {
+      ).subscribe((citationPdfUrl: string) => {
         // Use the found link to set the <meta> tag
-        this.addMetaTag(
-          'citation_pdf_url',
-          new URLCombiner(this.hardRedirectService.getCurrentOrigin(), link).toString(),
-        );
+        this.addMetaTag('citation_pdf_url', citationPdfUrl);
       });
     }
   }

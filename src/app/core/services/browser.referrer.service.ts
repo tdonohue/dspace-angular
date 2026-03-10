@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { URLCombiner } from '../url-combiner/url-combiner';
-import { HardRedirectService } from './hard-redirect.service';
+import { BrowserHardRedirectService } from './browser-hard-redirect.service';
 import { ReferrerService } from './referrer.service';
 import { RouteService } from './route.service';
 
@@ -25,7 +25,7 @@ export class BrowserReferrerService extends ReferrerService {
   constructor(
     @Inject(DOCUMENT) protected document: any,
     protected routeService: RouteService,
-    protected hardRedirectService: HardRedirectService,
+    protected browserHardRedirectService: BrowserHardRedirectService,
   ) {
     super();
   }
@@ -50,7 +50,7 @@ export class BrowserReferrerService extends ReferrerService {
           const reversedHistory = [...history].reverse();
           // and find the first URL that differs from the current one
           const prevUrl = reversedHistory.find((url: string) => url !== currentURL);
-          return new URLCombiner(this.hardRedirectService.getCurrentOrigin(), prevUrl).toString();
+          return new URLCombiner(this.browserHardRedirectService.getCurrentOrigin(), prevUrl).toString();
         }
       }),
     );

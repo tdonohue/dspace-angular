@@ -5,6 +5,9 @@ import { Injectable } from '@angular/core';
  */
 @Injectable()
 export abstract class HardRedirectService {
+  getCurrentOrigin() {
+    throw new Error('Method not implemented.');
+  }
 
   /**
    * Perform a hard redirect to a given location.
@@ -21,12 +24,4 @@ export abstract class HardRedirectService {
    * e.g. /search?page=1&query=open%20access&f.dateIssued.min=1980&f.dateIssued.max=2020
    */
   abstract getCurrentRoute(): string;
-
-  /**
-   * Get the origin of the current URL
-   * i.e. <scheme> "://" <hostname> [ ":" <port> ]
-   * e.g. if the URL is https://demo.dspace.org/search?query=test,
-   * the origin would be https://demo.dspace.org
-   */
-  abstract getCurrentOrigin(): string;
 }

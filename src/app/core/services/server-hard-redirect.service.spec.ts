@@ -72,13 +72,6 @@ describe('ServerHardRedirectService', () => {
     });
   });
 
-  describe('when requesting the origin', () => {
-
-    it('should return the location origin', () => {
-      expect(service.getCurrentOrigin()).toEqual(origin);
-    });
-  });
-
   describe('when SSR base url is set', () => {
     const redirect = 'https://private-url:4000/server/api/bitstreams/uuid';
     const replacedUrl = 'https://public-url/server/api/bitstreams/uuid';

@@ -1,4 +1,5 @@
 import { BitstreamDataService } from '@dspace/core/data/bitstream-data.service';
+import { ConfigurationDataService } from '@dspace/core/data/configuration-data.service';
 import { RemoteData } from '@dspace/core/data/remote-data';
 import { RequestEntryState } from '@dspace/core/data/request-entry-state.model';
 import { PAGE_NOT_FOUND_PATH } from '@dspace/core/router/core-routing-paths';
@@ -10,10 +11,12 @@ import { cold } from 'jasmine-marbles';
 import { EMPTY } from 'rxjs';
 
 import { legacyBitstreamURLRedirectGuard } from './legacy-bitstream-url-redirect.guard';
+import { environment } from '../../environments/environment';
 
 describe('legacyBitstreamURLRedirectGuard', () => {
   let resolver: any;
   let bitstreamDataService: BitstreamDataService;
+  let configurationDataService: ConfigurationDataService
   let remoteDataMocks: { [type: string]: RemoteData<Bitstream> };
   let route;
   let state;
@@ -43,6 +46,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
     bitstreamDataService = {
       findByItemHandle: () => undefined,
     } as any;
+    configurationDataService = { } as any;
     resolver = legacyBitstreamURLRedirectGuard;
   });
 
@@ -60,7 +64,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
         });
       });
       it(`should call findByItemHandle with the handle, sequence id, and filename from the route`, () => {
-        resolver(route, state, bitstreamDataService, hardRedirectService, router);
+        resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router);
         expect(bitstreamDataService.findByItemHandle).toHaveBeenCalledWith(
           `${route.params.prefix}/${route.params.suffix}`,
           route.params.sequence_id,
@@ -85,7 +89,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
           });
         });
         it(`should call findByItemHandle with the handle and filename from the route, and the sequence ID from the queryParams`, () => {
-          resolver(route, state, bitstreamDataService, hardRedirectService, router);
+          resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router);
           expect(bitstreamDataService.findByItemHandle).toHaveBeenCalledWith(
             `${route.params.prefix}/${route.params.suffix}`,
             route.queryParams.sequenceId,
@@ -105,7 +109,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
           });
         });
         it(`should call findByItemHandle with the handle, and filename from the route`, () => {
-          resolver(route, state, bitstreamDataService, hardRedirectService, router);
+          resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router);
           expect(bitstreamDataService.findByItemHandle).toHaveBeenCalledWith(
             `${route.params.prefix}/${route.params.suffix}`,
             undefined,
@@ -122,7 +126,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
           b: remoteDataMocks.ResponsePending,
           c: remoteDataMocks.Error,
         }));
-        resolver(route, state, bitstreamDataService, hardRedirectService, router).subscribe(() => {
+        resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router).subscribe(() => {
           expect(bitstreamDataService.findByItemHandle).toHaveBeenCalled();
           expect(router.createUrlTree).toHaveBeenCalledWith([PAGE_NOT_FOUND_PATH]);
         });
@@ -135,7 +139,7 @@ describe('legacyBitstreamURLRedirectGuard', () => {
           b: remoteDataMocks.ResponsePending,
           c: remoteDataMocks.NoContent,
         }));
-        resolver(route, state, bitstreamDataService, hardRedirectService, router).subscribe(() => {
+        resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router).subscribe(() => {
           expect(bitstreamDataService.findByItemHandle).toHaveBeenCalled();
           expect(router.createUrlTree).toHaveBeenCalledWith([PAGE_NOT_FOUND_PATH]);
         });
@@ -148,9 +152,9 @@ describe('legacyBitstreamURLRedirectGuard', () => {
           b: remoteDataMocks.ResponsePending,
           c: remoteDataMocks.Success,
         }));
-        resolver(route, state, bitstreamDataService, hardRedirectService, router).subscribe(() => {
+        resolver(route, state, bitstreamDataService, configurationDataService, hardRedirectService, router).subscribe(() => {
           expect(bitstreamDataService.findByItemHandle).toHaveBeenCalled();
-          expect(hardRedirectService.redirect).toHaveBeenCalledWith(new URL(`/bitstreams/${bitstream.uuid}/download`, window.location.origin).href, 301);
+          expect(hardRedirectService.redirect).toHaveBeenCalledWith(new URL(`/bitstreams/${bitstream.uuid}/download`, environment.ui.baseUrl).href, 301);
         });
       });
     });
