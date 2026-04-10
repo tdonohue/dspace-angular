@@ -1,4 +1,4 @@
-import Mirador from 'mirador/dist/es/src/index';
+import Mirador from 'mirador';
 
 // You can modify this default Mirador configuration file. However,
 // you should consider creating a copy of this file named
@@ -8,14 +8,14 @@ import Mirador from 'mirador/dist/es/src/index';
 // copy.
 
 // For an example of all Mirador configuration options, see
-// https://github.com/ProjectMirador/mirador/blob/master/src/config/settings.js
+// https://github.com/ProjectMirador/mirador/blob/main/src/config/settings.js
 
 // You can add or remove plugins. When adding new plugins be sure to also
 // import them into the project via your package.json dependencies.
-import miradorShareDialogPlugin from 'mirador-share-plugin/es/MiradorShareDialog';
-import miradorSharePlugin from 'mirador-share-plugin/es/miradorSharePlugin';
-import miradorDownloadPlugin from 'mirador-dl-plugin/es/miradorDownloadPlugin';
-import miradorDownloadDialog from 'mirador-dl-plugin/es/MiradorDownloadDialog';
+import miradorShareDialogPlugin from 'mirador-share-plugin';
+import miradorSharePlugin from 'mirador-share-plugin';
+import miradorDownloadPlugin from 'mirador-dl-plugin';
+import miradorDownloadDialog from 'mirador-dl-plugin';
 
 const params = new URLSearchParams(location.search);
 const manifest = params.get('manifest');
