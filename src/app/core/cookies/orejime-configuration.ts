@@ -1,3 +1,4 @@
+import { title } from 'process';
 import {
   IMPERSONATING_COOKIE,
   REDIRECT_COOKIE,
@@ -35,35 +36,31 @@ export const CORRELATION_ID_COOKIE = 'CORRELATION-ID';
 
 export function getOrejimeConfiguration(_window: NativeWindowRef): any {
   return {
-    cookieName: ANONYMOUS_STORAGE_NAME_OREJIME,
+    privacyPolicyUrl: './info/privacy',
 
-    privacyPolicy: './info/privacy',
-
-    // Optional. You can set a custom expiration time for the Orejime cookie, in days.
-    // defaults to 365.
-    cookieExpiresAfterDays: 365,
-
-    /*
-    We need to explicitly enable the 'zz' language, where all translations are set, because Orejime's default is 'en'.
-     */
-    lang: 'zz',
+    cookie: {
+      name: ANONYMOUS_STORAGE_NAME_OREJIME,
+      // Optional. You can set a custom expiration time for the Orejime cookie, in days.
+      // defaults to 365.
+      duration: 365,
+      // Custom function to serialize the cookie contents.
+      stringify: (contents: any) => {
+        return (typeof contents === 'string') ? contents : JSON.stringify(contents);
+      },
+      // custom function to unserialize the cookie contents
+      parse: (cookie: string) => {
+        if (typeof cookie === 'string') {
+          cookie = decodeURIComponent(cookie);
+          return JSON.parse(cookie);
+        }
+        return cookie;
+      },
+    },
 
     /*
     The appElement selector is used by Orejime to determine where to insert the consent
      */
-    appElement: 'ds-app',
-
-    stringifyCookie: (contents: any) => {
-      return (typeof contents === 'string') ? contents : JSON.stringify(contents);
-    },
-
-    parseCookie: (cookie: string) => {
-      if (typeof cookie === 'string') {
-        cookie = decodeURIComponent(cookie);
-        return JSON.parse(cookie);
-      }
-      return cookie;
-    },
+    orejimeElement: 'ds-app',
 
     /*
     You can overwrite existing translations and add translations for your app
@@ -71,7 +68,7 @@ export function getOrejimeConfiguration(_window: NativeWindowRef): any {
     translations that can be overwritten:
     https://github.com/empreinte-digitale/orejime/blob/master/src/translations/en.yml
     */
-    translations: {
+    /*translations: {*/
       /*
         The `zz` key contains default translations that will be used as fallback values.
         This can e.g. be useful for defining a fallback privacy policy URL.
@@ -79,7 +76,7 @@ export function getOrejimeConfiguration(_window: NativeWindowRef): any {
         translateConfiguration() in browser-orejime.service.ts. All the below i18n keys are specified
         in your /src/assets/i18n/*.json5 translation pack.
       */
-      zz: {
+    /*  zz: {
         acceptAll: 'cookies.consent.accept-all',
         acceptSelected: 'cookies.consent.accept-selected',
         close: 'cookies.consent.close',
@@ -114,13 +111,18 @@ export function getOrejimeConfiguration(_window: NativeWindowRef): any {
           },
         },
       },
-    },
-    apps: [
+    },*/
+    /** 
+     * TODO: NOTE that Orejime seems to have a bug with listing more than 4-5 purposes.
+     * That's why we currently only have 4 purposes listed here. We may need to log
+     * a ticket with Orejime if this doesn't get fixed soon.
+     */
+    purposes: [
       {
-        name: 'authentication',
-        purposes: ['functional'],
-        required: true,
-        optOut: true,
+        id: 'authentication',
+        title: 'Authentication',
+        description: 'These cookies are required to keep you authenticated after you login.',
+        isMandatory: true,
         cookies: [
           TOKENITEM,
           IMPERSONATING_COOKIE,
@@ -128,108 +130,90 @@ export function getOrejimeConfiguration(_window: NativeWindowRef): any {
         ],
       },
       {
-        name: 'preferences',
-        purposes: ['functional'],
-        required: true,
-        optOut: true,
+        id: 'preferences',
+        title: 'Preferences',
+        description: 'These cookies are required to store your preferences.',
+        isMandatory: true,
         cookies: [
           LANG_COOKIE,
         ],
       },
       {
-        name: 'acknowledgement',
-        purposes: ['functional'],
-        required: true,
-        optOut: true,
+        id: 'acknowledgement',
+        title: 'Acknowledgement',
+        description: 'These cookies are required to store your acknowledgements and consents.',
+        isMandatory: true,
         cookies: [
           [/^orejime-.+$/],
           HAS_AGREED_END_USER,
         ],
       },
       {
-        name: CORRELATION_ID_OREJIME_KEY,
-        purposes: ['statistical'],
-        required: false,
-        cookies: [
-          CORRELATION_ID_COOKIE,
-        ],
-        callback: () => {
-          _window?.nativeWindow.initCorrelationId();
-        },
-      },
-      {
-        name: MATOMO_OREJIME_KEY,
-        purposes: ['statistical'],
-        required: false,
-        cookies: [
-          MATOMO_COOKIE,
-        ],
-        callback: (consent: boolean) => {
-          _window?.nativeWindow.changeMatomoConsent(consent);
-        },
-      },
-      {
-        name: GOOGLE_ANALYTICS_OREJIME_KEY,
-        purposes: ['statistical'],
-        required: false,
-        cookies: [
-          //     /*
-          //     you an either only provide a cookie name or regular expression (regex) or a list
-          //     consisting of a name or regex, a path and a cookie domain. Providing a path and
-          //     domain is necessary if you have services that set cookies for a path that is not
-          //     "/", or a domain that is not the current domain. If you do not set these values
-          //     properly, the cookie can't be deleted by Orejime, as there is no way to access the
-          //     path or domain of a cookie in JS. Notice that it is not possible to delete
-          //     cookies that were set on a third-party domain, or cookies that have the HTTPOnly
-          //     attribute: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#new-
-          //     cookie_domain
-          //     */
-          //
-          //     /*
-          //     This rule will match cookies that contain the string '_pk_' and that are set on
-          //     the path '/' and the domain 'orejime.kiprotect.com'
-          //     */
-          [/^_ga.?$/],
-          [/^_gid$/],
-          //
-          //     /*
-          //     Same as above, only for the 'localhost' domain
-          //     */
-          //     [/^_pk_.*$/, '/', 'localhost'],
-          //
-          //     /*
-          //     This rule will match all cookies named 'piwik_ignore' that are set on the path
-          //     '/' on the current domain
-          //     */
-          //     'piwik_ignore',
-        ],
-        /*
-        If 'onlyOnce' is set to 'true', the app will only be executed once regardless
-        how often the user toggles it on and off. This is relevant e.g. for tracking
-        scripts that would generate new page view events every time Orejime disables and
-        re-enables them due to a consent change by the user.
-        */
-        onlyOnce: true,
-      },
-      {
-        name: CAPTCHA_NAME,
-        purposes: ['registration-password-recovery'],
-        required: false,
+        id: CAPTCHA_NAME,
+        title: 'CAPTCHA',
+        description: 'These cookies are used to store CAPTCHA data.',
+        isMandatory: true,
         cookies: [
           CAPTCHA_COOKIE,
         ],
+        /*  TODO: Replace callback
         callback: (consent: boolean) => {
           _window?.nativeWindow.refreshCaptchaScript?.call();
-        },
-        onlyOnce: true,
+        },*/
+        runsOnce: true,
       },
       {
-        name: 'accessibility',
-        purposes: ['functional'],
-        required: false,
-        cookies: [ACCESSIBILITY_COOKIE],
-        onlyOnce: false,
+        id: 'accessibility',
+        title: 'Accessibility',
+        description: 'These cookies are used to store your accessibility preferences.',
+        cookies: [
+          ACCESSIBILITY_COOKIE,
+        ],
+        default: true,
       },
+      {
+        id: CORRELATION_ID_OREJIME_KEY,
+        title: 'Correlation ID',
+        description: 'This cookie is used to store a unique identifier for each visitor for error tracking.',
+        cookies: [
+          CORRELATION_ID_COOKIE
+        ],
+        /* TODO: Replace callback
+        callback: () => {
+          _window?.nativeWindow.initCorrelationId();
+        },*/
+        default: true,
+      },
+      {
+        id: MATOMO_OREJIME_KEY,
+        title: 'Analytics (Matomo)',
+        description: 'These cookies are used to track visitor interactions with the site for analytics purposes.',
+        cookies: [
+          MATOMO_COOKIE,
+        ],
+        default: true,
+        runsOnce: true,
+        /* TODO: Replace callback
+        callback: (consent: boolean) => {
+          _window?.nativeWindow.changeMatomoConsent(consent);
+        },*/
+      },
+      {
+        id: GOOGLE_ANALYTICS_OREJIME_KEY,
+        title: 'Analytics (Google Analytics)',
+        description: 'These cookies are used to track visitor interactions with the site for analytics purposes.',
+        cookies: [
+          [/^_ga.?$/],
+          [/^_gid$/],
+        ],
+        default: true,
+        /* If runsOnce is true, the app will only be executed once regardless
+          how often the user toggles it on and off. This is relevant e.g. for tracking
+          scripts that would generate new page view events every time Orejime disables and
+          re-enables them due to a consent change by the user.*/
+        runsOnce: true,
+      },
+      
     ],
   };
 }

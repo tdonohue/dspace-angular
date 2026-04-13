@@ -78,7 +78,7 @@ const LAZY_OREJIME = new InjectionToken<Promise<any>>(
   'Lazily loaded Orejime',
   {
     providedIn: 'root',
-    factory: async () => (await import('orejime/dist/orejime')),
+    factory: async () => (await import('orejime/dist/orejime-standard-en')),
   },
 );
 
@@ -181,28 +181,28 @@ export class BrowserOrejimeService extends OrejimeService {
         /**
          * Add all message keys for apps and purposes
          */
-        this.addAppMessages();
+        // TODO: TRANSLATIONS TO OTHER LANGUAGES ARE NOT WORKING YET
+        //this.addAppMessages();
 
-        /**
-         * Create categories based on the purposes of the apps
-         */
-        this.createCategories();
-
+        // TODO: TRANSLATIONS TO OTHER LANGUAGES ARE NOT WORKING YET
         /**
          * Subscribe on a message to make sure the translation service is ready
          * Translate all keys in the translation section of the configuration
          * Show the configuration if the configuration has not been confirmed
          */
-        this.translateConfiguration();
+        //this.translateConfiguration();
 
         if (!this.appConfig.info?.enableCookieConsentPopup) {
-          this.orejimeConfig.apps = [];
+          this.orejimeConfig.purposes = [];
         } else {
-          this.orejimeConfig.apps = this.filterConfigApps(appsToHide);
+          this.orejimeConfig.purposes = this.filterConfigPurposes(appsToHide);
         }
-        this.applyUpdateSettingsCallbackToApps(user);
-        this.lazyOrejime.then(({ init }) => {
-          this.orejimeInstance = init(this.orejimeConfig);
+
+        // TODO: THis needs to be implemented
+        //this.applyUpdateSettingsCallbackToApps(user);
+
+        this.lazyOrejime.then(({ loadOrejime }) => {
+          this.orejimeInstance = this._window.nativeWindow.loadOrejime(this.orejimeConfig);
         });
       });
   }
@@ -253,7 +253,7 @@ export class BrowserOrejimeService extends OrejimeService {
    * @param user The authenticated user
    */
   private initializeUser(user: EPerson) {
-    this.orejimeConfig.cookieName = this.getStorageName(user.uuid);
+    this.orejimeConfig.cookie.name = this.getStorageName(user.uuid);
 
     const anonCookie = this.cookieService.get(ANONYMOUS_STORAGE_NAME_OREJIME);
     if (hasValue(this.getSettingsForUser(user))) {
@@ -302,10 +302,10 @@ export class BrowserOrejimeService extends OrejimeService {
 
   /**
    * Create a title translation key
-   * @param title
+   * @param id The app id to create the translation key for
    */
-  private getTitleTranslation(title: string) {
-    return cookieNameMessagePrefix + title;
+  private getTitleTranslation(id: string) {
+    return cookieNameMessagePrefix + id;
   }
 
   /**
@@ -328,21 +328,16 @@ export class BrowserOrejimeService extends OrejimeService {
    * Show the cookie consent form
    */
   showSettings() {
-    this.orejimeInstance.show();
+    this.orejimeInstance.prompt();
   }
 
   /**
    * Add message keys for all apps and purposes
    */
   addAppMessages() {
-    this.orejimeConfig.apps.forEach((app) => {
-      this.orejimeConfig.translations.zz[app.name] = {
-        title: this.getTitleTranslation(app.name),
-        description: this.getDescriptionTranslation(app.name),
-      };
-      app.purposes.forEach((purpose) => {
-        this.orejimeConfig.translations.zz.purposes[purpose] = this.getPurposeTranslation(purpose);
-      });
+    this.orejimeConfig.purposes.forEach((purpose) => {
+      purpose.title = this.translate(this.getTitleTranslation(purpose.id));
+      purpose.description = this.translate(this.getDescriptionTranslation(purpose.id));
     });
   }
 
@@ -356,25 +351,6 @@ export class BrowserOrejimeService extends OrejimeService {
     this.translateService.setFallbackLang(this.appConfig.fallbackLanguage);
 
     this.translate(this.orejimeConfig.translations.zz);
-  }
-
-  /**
-   * Create categories based on the purposes of the apps
-   */
-  createCategories() {
-    this.orejimeConfig.categories = this.orejimeConfig.apps.reduce((accumulator, current) => {
-      let category = accumulator.find((cat) => cat.name === current.purposes[0]);
-      if (!category) {
-        category = {
-          name: current.purposes[0],
-          title: this.translateService.instant(this.getPurposeTranslation(current.purposes[0])),
-          apps: [],
-        };
-        accumulator.push(category);
-      }
-      category.apps.push(current.name);
-      return accumulator;
-    }, []);
   }
 
   /**
@@ -451,14 +427,11 @@ export class BrowserOrejimeService extends OrejimeService {
   }
 
   /**
-   * remove apps that should be hidden from the configuration
+   * Remove purposes that should be hidden from the configuration (because they are disabled in DSpace)
+   * @param appsToHide the list of app ids to hide from the configuration
+   * @private
    */
-  private filterConfigApps(appsToHide: string[]) {
-    this.orejimeConfig.categories.forEach((category) => {
-      category.apps = category.apps.filter(service => !appsToHide.some(name => name === service));
-    });
-    this.orejimeConfig.categories = this.orejimeConfig.categories.filter(category => category.apps.length > 0);
-    return this.orejimeConfig.apps.filter(service => !appsToHide.some(name => name === service.name));
+  private filterConfigPurposes(appsToHide: string[]) {
+    return this.orejimeConfig.purposes.filter(purpose => !appsToHide.some(id => id === purpose.id));
   }
-
 }
